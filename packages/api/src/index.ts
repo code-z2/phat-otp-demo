@@ -77,8 +77,6 @@ app.get("/", async (req, res) => {
     // generates a valid signature to be used to verify the message
     const signature = await wallet.signMessage(otpHash)
 
-    console.log("otp generated", otp, otpHash, signature)
-
     // Return OTP details as JSON
     res.json({
         payload: defaultAbiCoder.encode(["bytes32", "address", "uint8", "bytes"], [otpHash, recipient, 0, signature]),

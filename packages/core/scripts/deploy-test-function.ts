@@ -51,6 +51,7 @@ async function main() {
     const cert = await signCertificate({pair})
 
     const brickProfileFactoryAbi = fs.readFileSync("./abis/brick_profile_factory.json", "utf8")
+
     const brickProfileFactoryContractId =
         process.env.PHAT_BRICKS_TESTNET_FACTORY_CONTRACT_ID ||
         "0x489bb4fa807bbe0f877ed46be8646867a8d16ec58add141977c4bd19b0237091"
@@ -65,13 +66,16 @@ async function main() {
         brickProfileFactoryContractId,
         brickProfileFactoryContractKey
     )
-    const {output: brickProfileAddressQuery} = await brickProfileFactory.query.getUserProfileAddress<
-        Result<AccountId, any>
-    >(pair.address, {cert})
-    if (!brickProfileAddressQuery.isOk || !brickProfileAddressQuery.asOk.isOk) {
-        throw new Error("Brick Profile Factory not found.")
+    // const {output: brickProfileAddressQuery} = await brickProfileFactory.query.getUserProfileAddress<
+    //     Result<AccountId, any>
+    // >(pair.address, {cert})
+    // if (!brickProfileAddressQuery.isOk || !brickProfileAddressQuery.asOk.isOk) {
+    //     throw new Error("Brick Profile Factory not found.")
+    // }
+    const brickProfileContractId = process.env.PHAT_BRICKS_TESTNET_CONTRACT_ID
+    if (!brickProfileContractId) {
+        throw new Error("Please set PHAT_BRICKS_TESTNET_CONTRACT_ID via .env file first.")
     }
-    const brickProfileContractId = brickProfileAddressQuery.asOk.asOk.toHex()
     const contractInfo = await registry.phactory.getContractInfo({contracts: [brickProfileContractId]})
     const brickProfileCodeHash = contractInfo.contracts[0].codeHash
 

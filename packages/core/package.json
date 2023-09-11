@@ -8,7 +8,9 @@
         "run-function": "phat-fn run dist/index.js",
         "localhost-watch": "phat-fn watch",
         "localhost-node": "hardhat node",
-        "localhost-test": "hardhat test"
+        "localhost-test": "hardhat test",
+        "deploy-test-function": "hardhat run --network mumbai ./scripts/deploy-test-function.ts",
+        "deploy-main-function": "hardhat run --network polygon ./scripts/deploy-main-function.ts"
     },
     "keywords": [],
     "author": "",

@@ -17,8 +17,7 @@ export default function (req: HexString, key: string) {
         returnTextBody: true,
     })
 
-    const body = JSON.parse(res.body as string) as {payload?: string; error?: string}
-    console.info(body)
+    const body = JSON.parse(res.body.toString()) as {payload?: string; error?: string}
     if (res.statusCode == 200) {
         return body.payload
     }

@@ -4,7 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "deploy-mumbai": "make deploy contract=OTP CHAIN=MUMBAI",
+        "deploy-polygon": "make deploy contract=OTP CHAIN=POLYGON"
     },
     "keywords": [],
     "author": "",

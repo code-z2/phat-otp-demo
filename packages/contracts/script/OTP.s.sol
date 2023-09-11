@@ -10,7 +10,6 @@ contract DeployOTP is Script {
     function run() public {
         vm.startBroadcast();
         OTP otp = new OTP(msg.sender);
-        otp.getOTP();
         vm.stopBroadcast();
     }
 }
