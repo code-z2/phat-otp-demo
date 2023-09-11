@@ -10,17 +10,22 @@ type HexString = `0x${string}`
 const address = new Coders.AddressCoder("address")
 
 function abiCoder() {
-    return Coders.encode(
+    const payload = Coders.encode(
         [address, address],
         ["0x20b572be48527a770479744aec6fe5644f97678b", "0xcfeb832cd0705d719f72a8399ae6e83e6e63a1a1"]
     ) as HexString
+    return payload
 }
 
 async function waitForResponse(consumer: Contract, event: Event) {
     const [, data] = event.args!
     // Run Phat Function
-    const result = execSync(`phat-fn run dist/index.js -a ${abiCoder()} somethingrandomlysecret`).toString()
-    const json = JSON.parse(result)
+    const result = execSync(`phat-fn run dist/index.js -a ${abiCoder()} somethingrandomlysecret`)
+
+    const res = result.toString()
+
+    const json = JSON.parse(res)
+
     const action = ethers.utils.hexlify(ethers.utils.concat([new Uint8Array([0]), json.output]))
     // Make a response
     const tx = await consumer.rollupU256CondEq(

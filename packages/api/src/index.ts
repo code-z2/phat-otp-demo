@@ -4,6 +4,7 @@ import cors from "cors"
 import {Wallet} from "ethers"
 import {Client} from "@xmtp/xmtp-js"
 import {config} from "dotenv"
+import {defaultAbiCoder, isAddress, keccak256} from "ethers/lib/utils"
 
 config()
 
@@ -32,23 +33,31 @@ function formartAddress(address: string): string {
     return address.startsWith("0x") ? address.substring(0, 6) + "..." + address.substring(address.length - 4) : address
 }
 
+function encodeError(error: string): string {
+    return defaultAbiCoder.encode(["bytes32", "address", "uint8", "bytes"], ["0x0", "0x0", 1, keccak256(error)])
+}
+
 // Create a route to generate and return OTP details
 // Using the default route for simplicity
 app.get("/", async (req, res) => {
-    const recipient = req.query.recipient as string | undefined // Get the wallet address from the request body
-    const sender = req.query.sender as string | undefined
+    const payload = req.query.payload as string | undefined // Get the wallet address from the request body
     const key = req.query.key as string | undefined
 
-    if (!recipient) {
-        return res.status(400).json({error: "Missing address query parameter"})
+    if (!payload) {
+        return res.status(400).json({error: encodeError("Invalid Payload")})
     }
     if (!key || key !== apiKey) {
-        return res.status(401).json({error: "Unauthorized"})
+        return res.status(401).json({error: encodeError("Unauthorized")})
+    }
+    const [recipient, sender] = defaultAbiCoder.decode(["address", "address"], payload)
+
+    if (!isAddress(recipient) || !isAddress(sender)) {
+        return res.status(400).json({error: encodeError("Address or Recipient invalid")})
     }
 
     const canMessage = await xmtp.canMessage(recipient)
     if (!canMessage) {
-        return res.status(403).json({error: "Unable to message this recipient"})
+        return res.status(403).json({error: encodeError("Unable to message this recipient")})
     }
 
     const conversation = await xmtp.conversations.newConversation(recipient)
@@ -68,11 +77,11 @@ app.get("/", async (req, res) => {
     // generates a valid signature to be used to verify the message
     const signature = await wallet.signMessage(otpHash)
 
+    console.log("otp generated", otp, otpHash, signature)
+
     // Return OTP details as JSON
     res.json({
-        otp: otpHash,
-        recipient,
-        signature,
+        payload: defaultAbiCoder.encode(["bytes32", "address", "uint8", "bytes"], [otpHash, recipient, 0, signature]),
     })
 })
 
