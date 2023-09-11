@@ -25,10 +25,10 @@ jobs:
       - name: Run Forge build
         run: |
           forge --version
-          make build target=core
+          make build target=contracts
         id: build
 
       - name: Run Forge tests
         run: |
-          make test target=core
+          make test target=contracts
         id: test

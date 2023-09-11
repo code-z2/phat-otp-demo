@@ -17,7 +17,7 @@ install :; pre_install run_install post_install
 
 pre_install :; @touch .gitmodules
 
-run_install :; @forge install foundry-rs/forge-std smartcontractkit/chainlink-brownie-contracts openzeppelin/openzeppelin-contracts openzeppelin/openzeppelin-contracts-upgradeable axelarnetwork/axelar-gmp-sdk-solidity eth-infinitism/account-abstraction --no-commit
+run_install :; @forge install foundry-rs/forge-std openzeppelin/openzeppelin-contracts --no-commit
 
 post_install :; @rm .gitmodules
 
