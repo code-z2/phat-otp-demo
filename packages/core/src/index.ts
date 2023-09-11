@@ -1,8 +1,5 @@
 import "@phala/pink-env"
 import {Coders} from "@phala/ethers"
-import {config} from "dotenv"
-
-config()
 
 type HexString = `0x${string}`
 
@@ -18,7 +15,7 @@ function encodeAbi(otpHash: string, recipient: string, code: number, signature: 
     return Coders.encode([bytes32, address, uint8, bytes], [otpHash, recipient, code, signature]) as HexString
 }
 
-export default function (req: HexString) {
+export default function (req: HexString, key: string) {
     let recipient, sender
     try {
         ;[recipient, sender] = decodeAbi(req)
@@ -26,7 +23,7 @@ export default function (req: HexString) {
         return encodeAbi("0x0", "0x0", 1, "0x0")
     }
 
-    const otp_api_endpoint = `http://localhost:3001/?key=${process.env.OTP_API_KEY}&recipient=${recipient}&sender=${sender}`
+    const otp_api_endpoint = `http://localhost:3001/?key=${key}&recipient=${recipient}&sender=${sender}`
 
     let headers = {
         "Content-Type": "application/json",

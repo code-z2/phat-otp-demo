@@ -102,7 +102,7 @@ async function main() {
             process.env.MUMBAI_RPC_URL, // client_rpc
             process.env.MUMBAI_CONSUMER_CONTRACT_ADDRESS, // client_addr
             fs.readFileSync("./dist/index.js", "utf8"), // core_js
-            "https://api-mumbai.lens.dev/", // core_settings
+            process.env.OTP_API_KEY, // core_settings
             brickProfileContractId // brick_profile
         ),
         pair
@@ -163,7 +163,7 @@ async function main() {
 
        You also need to set up the attestor in your .env file:
 
-       MUMBAI_LENSAPI_ORACLE_ENDPOINT=${attestor}
+       OTP_ENDPOINT=${attestor}
 
        Then run:
 

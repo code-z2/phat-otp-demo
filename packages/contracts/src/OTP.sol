@@ -26,11 +26,19 @@ contract OTP is IOTP, PhatRollupAnchor {
 
     address public immutable _api;
 
+    bool initialized = false;
+
     mapping(address => OTPRecord) otpRecords;
 
     constructor(address api) {
         _api = api;
         _grantRole(PhatRollupAnchor.ATTESTOR_ROLE, api);
+    }
+
+    function setAttestor(address attester) public {
+        require(!initialized, "OTP: already initialized.");
+        _grantRole(PhatRollupAnchor.ATTESTOR_ROLE, attester);
+        initialized = true;
     }
 
     function getOTP() public {
