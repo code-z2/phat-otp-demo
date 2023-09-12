@@ -60,10 +60,11 @@ describe("test_otp", function () {
         const respEvents = await waitForResponse(consumer, reqEvents![0])
 
         // Check response data
-        expect(respEvents[0]).to.have.property("event", "OTPReceived")
-        const [hash, recipient] = respEvents[0].args
-        expect(recipient.toLowerCase()).to.equal(test_receiver.toLowerCase())
-        const record = await consumer.otpRecords(recipient)
-        expect(record).to.have.property("otpHash", hash)
+        expect(respEvents[0]).to.have.property("event", "ResponseReceived")
+        const [address, otpHash, code] = respEvents[0].args
+        expect(address.toLowerCase()).to.equal(test_receiver.toLowerCase())
+        expect(code).to.equal(0)
+        const record = await consumer.otpRecords(address)
+        expect(record).to.have.property("otpHash", otpHash)
     })
 })

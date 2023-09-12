@@ -1,6 +1,6 @@
 # Phat OTP
 
-[workflow](https://bricks-poc5.phala.network/workflows/0x37d77f8f1164207c461a04687cb9b9a3c4cbffeb6bb03bc45c56d5594dc3dd48/1)
+[workflow](https://bricks-poc5.phala.network/workflows/0x37d77f8f1164207c461a04687cb9b9a3c4cbffeb6bb03bc45c56d5594dc3dd48/2)
 
 phat otp is an onchain otp verification contract leveraging phat functions.
 

@@ -16,7 +16,8 @@ struct OTPRecord {
 error InvalidSigner(address, address);
 
 interface IOTP {
-    event OTPReceived(bytes32, address indexed);
+    event ResponseReceived(address reqId, bytes32 otpHash, uint256 code);
+    event ErrorReceived(address reqId, bytes32 otpHash, uint256 code);
 
     function getOTP() external;
 
@@ -56,9 +57,9 @@ contract OTP is IOTP, PhatRollupAnchor {
         return true;
     }
 
-    function _setOtp(bytes32 _otp, address recipient) internal {
+    function _setOtp(bytes32 _otp, address recipient, uint256 code) internal {
         otpRecords[recipient] = OTPRecord(_otp, block.timestamp);
-        emit OTPReceived(_otp, recipient);
+        emit ResponseReceived(recipient, _otp, code);
     }
 
     function _onMessageReceived(bytes calldata action) internal override {
@@ -72,7 +73,9 @@ contract OTP is IOTP, PhatRollupAnchor {
             revert InvalidSigner(signer, _api);
         }
         if (code == uint256(STATUSCODE.SUCCESS) && recipient != address(0)) {
-            _setOtp(otpHash, recipient);
+            _setOtp(otpHash, recipient, code);
+        } else {
+            emit ErrorReceived(recipient, otpHash, code);
         }
     }
 }
