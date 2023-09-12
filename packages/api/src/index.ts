@@ -1,10 +1,10 @@
 import express from "express"
 import crypto from "crypto"
 import cors from "cors"
-import {Wallet} from "ethers"
+import {Wallet, constants, utils} from "ethers"
 import {Client} from "@xmtp/xmtp-js"
 import {config} from "dotenv"
-import {defaultAbiCoder, isAddress, keccak256} from "ethers/lib/utils"
+import {arrayify, defaultAbiCoder, isAddress, randomBytes} from "ethers/lib/utils"
 
 config()
 
@@ -13,7 +13,7 @@ const port = process.env.PORT || 3000
 const env = (process.env.ENV as "local" | "dev" | "production" | undefined) || "dev"
 
 const apiKey = process.env.API_KEY
-const privKey = process.env.PRIV_KEY
+const privKey = env === "production" ? process.env.PRIV_KEY : process.env.LOCAL_PRIV_KEY
 const wallet = privKey ? new Wallet(privKey) : Wallet.createRandom()
 
 // Middleware to parse JSON requests
@@ -30,11 +30,16 @@ function generateOTP(): string {
 }
 
 function formartAddress(address: string): string {
-    return address.startsWith("0x") ? address.substring(0, 6) + "..." + address.substring(address.length - 4) : address
+    return address.startsWith("0x") && address.length === 42
+        ? address.substring(0, 6) + "..." + address.substring(address.length - 4)
+        : address
 }
 
 function encodeError(error: string): string {
-    return defaultAbiCoder.encode(["bytes32", "address", "uint8", "bytes"], ["0x0", "0x0", 1, keccak256(error)])
+    return defaultAbiCoder.encode(
+        ["bytes32", "uint256", "address", "bytes"],
+        [randomBytes(32), 1, constants.AddressZero, arrayify(utils.solidityKeccak256(["string"], [error]))]
+    )
 }
 
 // Create a route to generate and return OTP details
@@ -51,7 +56,12 @@ app.get("/", async (req, res) => {
     }
     const [recipient, sender] = defaultAbiCoder.decode(["address", "address"], payload)
 
-    if (!isAddress(recipient) || !isAddress(sender)) {
+    if (
+        !isAddress(recipient) ||
+        !isAddress(sender) ||
+        recipient == constants.AddressZero ||
+        sender == constants.AddressZero
+    ) {
         return res.status(400).json({error: encodeError("Address or Recipient invalid")})
     }
 
@@ -73,13 +83,18 @@ app.get("/", async (req, res) => {
     await conversation.send(message)
 
     // Compute SHA-256 hash of the OTP
-    const otpHash = `0x${crypto.createHash("sha256").update(otp).digest("hex")}`
+    const otpHash = utils.solidityKeccak256(["string"], [crypto.createHash("sha256").update(otp).digest("hex")])
     // generates a valid signature to be used to verify the message
-    const signature = await wallet.signMessage(otpHash)
+    const signature = await wallet.signMessage(arrayify(otpHash))
+
+    // production logs
+    if (env === "production") {
+        console.log(`request: ${req.ip}, otpHash: ${otpHash}, signature: ${signature}`)
+    }
 
     // Return OTP details as JSON
     res.json({
-        payload: defaultAbiCoder.encode(["bytes32", "address", "uint8", "bytes"], [otpHash, recipient, 0, signature]),
+        payload: utils.solidityPack(["bytes32", "uint256", "address", "bytes"], [otpHash, 0, recipient, signature]),
     })
 })
 

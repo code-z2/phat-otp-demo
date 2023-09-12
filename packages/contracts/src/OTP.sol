@@ -13,6 +13,8 @@ struct OTPRecord {
     uint256 timestamp;
 }
 
+error InvalidSigner(address, address);
+
 interface IOTP {
     event OTPReceived(bytes32, address indexed);
 
@@ -22,13 +24,15 @@ interface IOTP {
 }
 
 contract OTP is IOTP, PhatRollupAnchor {
+    using ECDSA for bytes32;
+
     uint256 constant MAX_OTP_VALIDITY = 5 minutes;
 
     address public immutable _api;
 
     bool initialized = false;
 
-    mapping(address => OTPRecord) otpRecords;
+    mapping(address => OTPRecord) public otpRecords;
 
     constructor(address api) {
         _api = api;
@@ -58,13 +62,16 @@ contract OTP is IOTP, PhatRollupAnchor {
     }
 
     function _onMessageReceived(bytes calldata action) internal override {
-        (bytes32 otpHash, address recipient, uint8 code, bytes memory signature) = abi.decode(
-            action,
-            (bytes32, address, uint8, bytes)
-        );
-        address signer = ECDSA.recover(otpHash, signature);
-        require(signer == _api, "OTP: Invalid signature.");
-        if (code == uint8(STATUSCODE.SUCCESS)) {
+        bytes32 otpHash = bytes32(action[0:32]);
+        uint256 code = uint256(bytes32(action[32:64]));
+        address recipient = address(bytes20(action[64:84]));
+        bytes memory signature = action[84:];
+
+        address signer = otpHash.toEthSignedMessageHash().recover(signature);
+        if (signer != _api) {
+            revert InvalidSigner(signer, _api);
+        }
+        if (code == uint256(STATUSCODE.SUCCESS) && recipient != address(0)) {
             _setOtp(otpHash, recipient);
         }
     }
