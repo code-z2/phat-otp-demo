@@ -44,3 +44,5 @@ lint :; @solhint src/**/*.sol && solhint src/*.sol
 
 # Deploy
 deploy :; @forge script script/${contract}.s.sol:Deploy${contract} --rpc-url ${$(CHAIN)_RPC_URL}  --private-key ${PRIVATE_KEY} --broadcast --verify --etherscan-api-key ${ETHERSCAN_API_KEY} --legacy -vv
+
+verify:; @forge verify-contract --etherscan-api-key ${ETHERSCAN_API_KEY} --watch --chain ${chain} ${address} ${contract} --constructor-args ${args}

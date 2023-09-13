@@ -3,7 +3,7 @@ import "@phala/pink-env"
 type HexString = `0x${string}`
 
 export default function (req: HexString, key: string) {
-    const otp_api_endpoint = `https://phat-otp-demo-prod.up.railway.app/?key=${key}&payload=${req}`
+    const otp_api_endpoint = `https://phat-otp-demo-mainnet.up.railway.app/?key=${key}&payload=${req}`
 
     let headers = {
         "Content-Type": "application/json",
